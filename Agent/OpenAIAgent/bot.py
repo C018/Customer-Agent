@@ -10,43 +10,13 @@ from config import config
 import json
 
 
-class OpenAIBot(Bot):
-    """OpenAI Bot for auto-reply"""
+class BaseOpenAIBot(Bot):
+    """Base class for OpenAI-compatible bots"""
     
     def __init__(self):
         super().__init__()
-        self.logger = get_logger("OpenAIBot")
-        self.bot_type = config.get("bot_type", "openai")
-        
-        # 初始化OpenAI client
-        try:
-            from openai import OpenAI
-            
-            # 配置参数
-            self.api_key = config.get("openai_api_key", "")
-            self.api_base = config.get("openai_api_base", "https://api.openai.com/v1")
-            self.model = config.get("openai_model", "gpt-3.5-turbo")
-            self.max_tokens = config.get("openai_max_tokens", 1000)
-            self.temperature = config.get("openai_temperature", 0.7)
-            self.system_prompt = config.get("openai_system_prompt", "你是一个专业的电商客服助手，请礼貌、专业地回答客户的问题。")
-            
-            if not self.api_key:
-                raise ValueError("OpenAI API key is not configured")
-            
-            # 创建客户端
-            self.client = OpenAI(
-                api_key=self.api_key,
-                base_url=self.api_base
-            )
-            
-            self.logger.info(f"OpenAI Bot initialized with model: {self.model}")
-            
-        except ImportError:
-            self.logger.error("openai package is not installed. Please install it with: pip install openai")
-            raise
-        except Exception as e:
-            self.logger.error(f"Failed to initialize OpenAI Bot: {e}")
-            raise
+        self.logger = None
+        self.client = None
     
     def reply(self, context: Context) -> Reply:
         """
@@ -65,27 +35,25 @@ class OpenAIBot(Bot):
             if not query:
                 return Reply(ReplyType.TEXT, "抱歉，我没有理解您的问题。")
             
-            # 调用OpenAI API
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": query}
-                ],
-                max_tokens=self.max_tokens,
-                temperature=self.temperature
-            )
-            
-            # 提取回复内容
-            if response.choices and len(response.choices) > 0:
-                reply_content = response.choices[0].message.content
-                return Reply(ReplyType.TEXT, reply_content)
-            else:
-                return Reply(ReplyType.TEXT, "抱歉，我暂时无法回答您的问题。")
+            # 调用API生成回复
+            reply_content = self._call_api(query)
+            return Reply(ReplyType.TEXT, reply_content)
                 
         except Exception as e:
-            self.logger.error(f"OpenAI API call failed: {e}", exc_info=True)
+            self.logger.error(f"API call failed: {e}", exc_info=True)
             return Reply(ReplyType.TEXT, "抱歉，服务暂时不可用，请稍后再试。")
+    
+    def _call_api(self, query: str) -> str:
+        """
+        调用API生成回复（由子类实现）
+        
+        Args:
+            query: 用户查询文本
+            
+        Returns:
+            回复文本
+        """
+        raise NotImplementedError("Subclasses must implement _call_api method")
     
     def _parse_content(self, content: str) -> str:
         """
@@ -117,7 +85,71 @@ class OpenAIBot(Bot):
             return str(content)
 
 
-class AzureOpenAIBot(Bot):
+class OpenAIBot(BaseOpenAIBot):
+    """OpenAI Bot for auto-reply"""
+    
+    def __init__(self):
+        super().__init__()
+        self.logger = get_logger("OpenAIBot")
+        
+        # 初始化OpenAI client
+        try:
+            from openai import OpenAI
+            
+            # 配置参数
+            self.api_key = config.get("openai_api_key", "")
+            self.api_base = config.get("openai_api_base", "https://api.openai.com/v1")
+            self.model = config.get("openai_model", "gpt-3.5-turbo")
+            self.max_tokens = config.get("openai_max_tokens", 1000)
+            self.temperature = config.get("openai_temperature", 0.7)
+            self.system_prompt = config.get("openai_system_prompt", "你是一个专业的电商客服助手，请礼貌、专业地回答客户的问题。")
+            
+            if not self.api_key:
+                raise ValueError("OpenAI API key is not configured")
+            
+            # 创建客户端
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.api_base
+            )
+            
+            self.logger.info(f"OpenAI Bot initialized with model: {self.model}")
+            
+        except ImportError:
+            self.logger.error("openai package is not installed. Please install it with: pip install openai")
+            raise
+        except Exception as e:
+            self.logger.error(f"Failed to initialize OpenAI Bot: {e}")
+            raise
+    
+    def _call_api(self, query: str) -> str:
+        """
+        调用OpenAI API生成回复
+        
+        Args:
+            query: 用户查询文本
+            
+        Returns:
+            回复文本
+        """
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": query}
+            ],
+            max_tokens=self.max_tokens,
+            temperature=self.temperature
+        )
+        
+        # 提取回复内容
+        if response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        else:
+            return "抱歉，我暂时无法回答您的问题。"
+
+
+class AzureOpenAIBot(BaseOpenAIBot):
     """Azure OpenAI Bot for auto-reply"""
     
     def __init__(self):
@@ -160,70 +192,29 @@ class AzureOpenAIBot(Bot):
             self.logger.error(f"Failed to initialize Azure OpenAI Bot: {e}")
             raise
     
-    def reply(self, context: Context) -> Reply:
+    def _call_api(self, query: str) -> str:
         """
-        生成AI回复
+        调用Azure OpenAI API生成回复
         
         Args:
-            context: 消息上下文
+            query: 用户查询文本
             
         Returns:
-            Reply对象
+            回复文本
         """
-        try:
-            # 解析消息内容
-            query = self._parse_content(context.content)
-            
-            if not query:
-                return Reply(ReplyType.TEXT, "抱歉，我没有理解您的问题。")
-            
-            # 调用Azure OpenAI API
-            response = self.client.chat.completions.create(
-                model=self.deployment_name,  # Azure uses deployment name as model
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": query}
-                ],
-                max_tokens=self.max_tokens,
-                temperature=self.temperature
-            )
-            
-            # 提取回复内容
-            if response.choices and len(response.choices) > 0:
-                reply_content = response.choices[0].message.content
-                return Reply(ReplyType.TEXT, reply_content)
-            else:
-                return Reply(ReplyType.TEXT, "抱歉，我暂时无法回答您的问题。")
-                
-        except Exception as e:
-            self.logger.error(f"Azure OpenAI API call failed: {e}", exc_info=True)
-            return Reply(ReplyType.TEXT, "抱歉，服务暂时不可用，请稍后再试。")
-    
-    def _parse_content(self, content: str) -> str:
-        """
-        解析消息内容
+        response = self.client.chat.completions.create(
+            model=self.deployment_name,  # Azure uses deployment name as model
+            messages=[
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": query}
+            ],
+            max_tokens=self.max_tokens,
+            temperature=self.temperature
+        )
         
-        Args:
-            content: 原始消息内容（可能是JSON字符串）
-            
-        Returns:
-            解析后的文本内容
-        """
-        try:
-            # 尝试解析JSON格式
-            if isinstance(content, str) and content.startswith('['):
-                content_list = json.loads(content)
-                if isinstance(content_list, list) and len(content_list) > 0:
-                    # 提取文本内容
-                    text_parts = []
-                    for item in content_list:
-                        if isinstance(item, dict) and item.get('type') == 'text':
-                            text_parts.append(item.get('text', ''))
-                    return ' '.join(text_parts)
-            
-            # 如果不是JSON或解析失败，直接返回原内容
-            return str(content)
-            
-        except Exception as e:
-            self.logger.warning(f"Failed to parse content: {e}")
-            return str(content)
+        # 提取回复内容
+        if response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        else:
+            return "抱歉，我暂时无法回答您的问题。"
+
