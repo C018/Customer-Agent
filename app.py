@@ -3,7 +3,6 @@ import ctypes
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication
 
-from ui.main_ui import MainWindow
 from utils.logger import get_logger
 
 def main():
@@ -25,6 +24,9 @@ def main():
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("my.company.my.product.version")
     except Exception as e:
         logger.warning(f"设置AppUserModelID失败: {e}")
+
+    # Import MainWindow after QApplication is created to avoid "Must construct a QApplication before a QWidget" error
+    from ui.main_ui import MainWindow
 
     # 初始化并显示主窗口
     window = MainWindow()
