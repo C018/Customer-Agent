@@ -9,6 +9,15 @@ from utils.logger import get_logger
 from config import config
 import json
 
+# Import OpenAI libraries at module level
+try:
+    from openai import OpenAI, AzureOpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    OpenAI = None
+    AzureOpenAI = None
+
 
 class BaseOpenAIBot(Bot):
     """Base class for OpenAI-compatible bots"""
@@ -37,6 +46,11 @@ class BaseOpenAIBot(Bot):
             
             # 调用API生成回复
             reply_content = self._call_api(query)
+            
+            # 确保回复内容不为空
+            if not reply_content:
+                return Reply(ReplyType.TEXT, "抱歉，我暂时无法回答您的问题。")
+            
             return Reply(ReplyType.TEXT, reply_content)
                 
         except Exception as e:
@@ -92,32 +106,28 @@ class OpenAIBot(BaseOpenAIBot):
         super().__init__()
         self.logger = get_logger("OpenAIBot")
         
-        # 初始化OpenAI client
+        # 检查openai是否可用
+        if not OPENAI_AVAILABLE:
+            raise ImportError("openai package is not installed. Please install it with: pip install openai")
+        
+        # 配置参数
+        self.api_key = config.get("openai_api_key", "")
+        self.api_base = config.get("openai_api_base", "https://api.openai.com/v1")
+        self.model = config.get("openai_model", "gpt-3.5-turbo")
+        self.max_tokens = config.get("openai_max_tokens", 1000)
+        self.temperature = config.get("openai_temperature", 0.7)
+        self.system_prompt = config.get("openai_system_prompt", "你是一个专业的电商客服助手，请礼貌、专业地回答客户的问题。")
+        
+        if not self.api_key:
+            raise ValueError("OpenAI API key is not configured")
+        
+        # 创建客户端
         try:
-            from openai import OpenAI
-            
-            # 配置参数
-            self.api_key = config.get("openai_api_key", "")
-            self.api_base = config.get("openai_api_base", "https://api.openai.com/v1")
-            self.model = config.get("openai_model", "gpt-3.5-turbo")
-            self.max_tokens = config.get("openai_max_tokens", 1000)
-            self.temperature = config.get("openai_temperature", 0.7)
-            self.system_prompt = config.get("openai_system_prompt", "你是一个专业的电商客服助手，请礼貌、专业地回答客户的问题。")
-            
-            if not self.api_key:
-                raise ValueError("OpenAI API key is not configured")
-            
-            # 创建客户端
             self.client = OpenAI(
                 api_key=self.api_key,
                 base_url=self.api_base
             )
-            
             self.logger.info(f"OpenAI Bot initialized with model: {self.model}")
-            
-        except ImportError:
-            self.logger.error("openai package is not installed. Please install it with: pip install openai")
-            raise
         except Exception as e:
             self.logger.error(f"Failed to initialize OpenAI Bot: {e}")
             raise
@@ -142,9 +152,10 @@ class OpenAIBot(BaseOpenAIBot):
             temperature=self.temperature
         )
         
-        # 提取回复内容
+        # 提取回复内容并确保不为空
         if response.choices and len(response.choices) > 0:
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            return content if content else "抱歉，我暂时无法回答您的问题。"
         else:
             return "抱歉，我暂时无法回答您的问题。"
 
@@ -156,38 +167,34 @@ class AzureOpenAIBot(BaseOpenAIBot):
         super().__init__()
         self.logger = get_logger("AzureOpenAIBot")
         
-        # 初始化Azure OpenAI client
+        # 检查openai是否可用
+        if not OPENAI_AVAILABLE:
+            raise ImportError("openai package is not installed. Please install it with: pip install openai")
+        
+        # 配置参数
+        self.api_key = config.get("azure_openai_api_key", "")
+        self.api_base = config.get("azure_openai_endpoint", "")
+        self.api_version = config.get("azure_openai_api_version", "2024-02-15-preview")
+        self.deployment_name = config.get("azure_openai_deployment_name", "")
+        self.max_tokens = config.get("azure_openai_max_tokens", 1000)
+        self.temperature = config.get("azure_openai_temperature", 0.7)
+        self.system_prompt = config.get("azure_openai_system_prompt", "你是一个专业的电商客服助手，请礼貌、专业地回答客户的问题。")
+        
+        if not self.api_key:
+            raise ValueError("Azure OpenAI API key is not configured")
+        if not self.api_base:
+            raise ValueError("Azure OpenAI endpoint is not configured")
+        if not self.deployment_name:
+            raise ValueError("Azure OpenAI deployment name is not configured")
+        
+        # 创建客户端
         try:
-            from openai import AzureOpenAI
-            
-            # 配置参数
-            self.api_key = config.get("azure_openai_api_key", "")
-            self.api_base = config.get("azure_openai_endpoint", "")
-            self.api_version = config.get("azure_openai_api_version", "2024-02-15-preview")
-            self.deployment_name = config.get("azure_openai_deployment_name", "")
-            self.max_tokens = config.get("azure_openai_max_tokens", 1000)
-            self.temperature = config.get("azure_openai_temperature", 0.7)
-            self.system_prompt = config.get("azure_openai_system_prompt", "你是一个专业的电商客服助手，请礼貌、专业地回答客户的问题。")
-            
-            if not self.api_key:
-                raise ValueError("Azure OpenAI API key is not configured")
-            if not self.api_base:
-                raise ValueError("Azure OpenAI endpoint is not configured")
-            if not self.deployment_name:
-                raise ValueError("Azure OpenAI deployment name is not configured")
-            
-            # 创建客户端
             self.client = AzureOpenAI(
                 api_key=self.api_key,
                 api_version=self.api_version,
                 azure_endpoint=self.api_base
             )
-            
             self.logger.info(f"Azure OpenAI Bot initialized with deployment: {self.deployment_name}")
-            
-        except ImportError:
-            self.logger.error("openai package is not installed. Please install it with: pip install openai")
-            raise
         except Exception as e:
             self.logger.error(f"Failed to initialize Azure OpenAI Bot: {e}")
             raise
@@ -212,9 +219,11 @@ class AzureOpenAIBot(BaseOpenAIBot):
             temperature=self.temperature
         )
         
-        # 提取回复内容
+        # 提取回复内容并确保不为空
         if response.choices and len(response.choices) > 0:
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            return content if content else "抱歉，我暂时无法回答您的问题。"
         else:
             return "抱歉，我暂时无法回答您的问题。"
+
 
