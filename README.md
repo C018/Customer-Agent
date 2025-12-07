@@ -23,8 +23,9 @@
 
 ### 💬 智能消息处理
 - 实时消息监控与自动回复
-- 集成AI (Coze API) 生成智能回复内容
+- 集成多种AI服务：支持 **Coze**、**OpenAI** 和 **Azure OpenAI**
 - 支持自定义回复模板和关键词识别
+- 灵活配置AI模型参数和系统提示词
 
 <div align="center">
   <img src="docs/自动回复.png" alt="自动回复界面" width="500">
@@ -99,9 +100,10 @@ python app.py
    - 配置需要人工转接的关键词
    - 设置自动回复的话术模板
 
-3. **配置Coze API**
-   - 在设置界面配置Coze API
-   - 设置Coze API
+3. **配置AI服务**
+   - 在 `config.json` 中配置您选择的AI服务（Coze、OpenAI 或 Azure OpenAI）
+   - 详细配置说明请查看 [AI Bot 配置指南](docs/AI_BOT_CONFIG.md)
+   - 提供API密钥和相关参数
 
 4. **启动系统**
    - 在账号管理界面启动系统
@@ -115,7 +117,7 @@ python app.py
 
 - **前端界面**: qfluentwidgets
 - **后端逻辑**: Python
-- **AI集成**: Coze API
+- **AI集成**: Coze API / OpenAI / Azure OpenAI（可选）
 - **数据存储**: SQLite + JSON
 - **浏览器自动化**: Playwright
 
