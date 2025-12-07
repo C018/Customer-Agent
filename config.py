@@ -8,10 +8,32 @@ import os
 
 
 config_base={
+    # Bot类型配置: coze, openai, azure_openai
+    "bot_type": "coze",
+    
+    # Coze配置
     "coze_api_base": "https://api.coze.cn",
     "coze_token": "",
     "coze_bot_id": "",
-    "bot_type": "coze",
+    
+    # OpenAI配置
+    "openai_api_key": "",
+    "openai_api_base": "https://api.openai.com/v1",
+    "openai_model": "gpt-3.5-turbo",
+    "openai_max_tokens": 1000,
+    "openai_temperature": 0.7,
+    "openai_system_prompt": "你是一个专业的电商客服助手，请礼貌、专业地回答客户的问题。",
+    
+    # Azure OpenAI配置
+    "azure_openai_api_key": "",
+    "azure_openai_endpoint": "",
+    "azure_openai_api_version": "2024-02-15-preview",
+    "azure_openai_deployment_name": "",
+    "azure_openai_max_tokens": 1000,
+    "azure_openai_temperature": 0.7,
+    "azure_openai_system_prompt": "你是一个专业的电商客服助手，请礼貌、专业地回答客户的问题。",
+    
+    # 营业时间配置
     "businessHours": {
         "start": "08:00",
         "end": "23:00"
