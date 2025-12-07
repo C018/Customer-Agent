@@ -225,5 +225,3 @@ class AzureOpenAIBot(BaseOpenAIBot):
             return content if content else "抱歉，我暂时无法回答您的问题。"
         else:
             return "抱歉，我暂时无法回答您的问题。"
-
-
