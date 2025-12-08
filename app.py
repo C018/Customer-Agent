@@ -7,16 +7,18 @@ from utils.logger import get_logger
 
 def main():
     """ 应用程序主函数 """
-    logger = get_logger("App")
-    logger.info("应用程序启动...")
-
-    # 启用高分屏支持
+    # 启用高分屏支持 - 必须在创建QApplication之前设置
     if hasattr(Qt.ApplicationAttribute, 'AA_EnableHighDpiScaling'):
         QApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
     if hasattr(Qt.ApplicationAttribute, 'AA_UseHighDpiPixmaps'):
         QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
 
+    # 创建QApplication实例 - 必须在任何QWidget创建之前
     app = QApplication(sys.argv)
+    
+    # 初始化logger - 在QApplication创建之后
+    logger = get_logger("App")
+    logger.info("应用程序启动...")
     
     # 在Windows上设置AppUserModelID，以确保任务栏图标正确显示
     try:
