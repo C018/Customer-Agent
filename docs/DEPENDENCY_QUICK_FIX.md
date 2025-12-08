@@ -174,7 +174,7 @@ uv run python app.py
 如果问题仍未解决:
 
 1. **查看日志**: 检查 `logs` 目录下的日志文件
-2. **提交 Issue**: https://github.com/JC0v0/Customer-Agent/issues
+2. **提交 Issue**: https://github.com/C018/Customer-Agent/issues
 3. **提供信息**:
    - Python 版本 (`python --version`)
    - 操作系统版本

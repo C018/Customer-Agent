@@ -67,7 +67,7 @@
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/JC0v0/Customer-Agent.git
+   git clone https://github.com/C018/Customer-Agent.git
    cd Customer-Agent
    ```
 
@@ -192,7 +192,7 @@ Customer-Agent/
 
 ## 📞 联系我们
 
-- **问题反馈**: [GitHub Issues](https://github.com/JC0v0/PDD-customer-bot/issues)
+- **问题反馈**: [GitHub Issues](https://github.com/C018/Customer-Agent/issues)
 - **功能建议**: 欢迎通过 Issues 提出您的想法
 - **技术交流**: 
 <div align="center">
