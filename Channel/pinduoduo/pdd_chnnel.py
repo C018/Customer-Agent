@@ -281,18 +281,18 @@ class PDDChannel(Channel):
             pdd_message = PDDChatMessage(message_data)
             
             # 记录消息概要信息（INFO级别）
-            msg_summary = f"收到消息 [店铺:{shop_id}] 类型:{message_data.get('response')} "
-            # 添加发送者信息
-            sender_info = []
-            if hasattr(pdd_message, 'from_user') and pdd_message.from_user:
-                sender_info.append(pdd_message.from_user)
-            if hasattr(pdd_message, 'nickname') and pdd_message.nickname:
-                sender_info.append(pdd_message.nickname)
-            if sender_info:
-                if len(sender_info) > 1:
-                    msg_summary += f"来自:{sender_info[0]}({sender_info[1]})"
-                else:
-                    msg_summary += f"来自:{sender_info[0]}"
+            msg_summary = f"收到消息 [店铺:{shop_id}] 类型:{message_data.get('response')}"
+            
+            # 添加发送者信息（如果有）
+            from_user = getattr(pdd_message, 'from_user', None)
+            nickname = getattr(pdd_message, 'nickname', None)
+            if from_user and nickname:
+                msg_summary += f" 来自:{from_user}({nickname})"
+            elif from_user:
+                msg_summary += f" 来自:{from_user}"
+            elif nickname:
+                msg_summary += f" 来自:{nickname}"
+                
             self.logger.info(msg_summary)
             
             # 记录完整消息内容（DEBUG级别，用于调试）
