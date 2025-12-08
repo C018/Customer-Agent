@@ -82,6 +82,9 @@
    uv run playwright install chrome
    ```
 
+📚 **详细安装指南**: 查看 [安装指南](docs/INSTALLATION_GUIDE.md) 了解更多安装方式和问题解决方案。  
+🔧 **依赖问题**: 如遇到依赖相关问题，请参考 [依赖分析文档](docs/DEPENDENCY_ANALYSIS.md) 和 [快速修复指南](docs/DEPENDENCY_QUICK_FIX.md)。
+
 
 ## 📱 使用指南
 
