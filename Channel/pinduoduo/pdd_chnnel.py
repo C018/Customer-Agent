@@ -276,10 +276,18 @@ class PDDChannel(Channel):
         try:
             # 解析消息
             message_data = json.loads(message)
-            self.logger.info(f"收到消息: {json.dumps(message_data, indent=2, ensure_ascii=False)}")
             
             # 转换为PDD消息对象
             pdd_message = PDDChatMessage(message_data)
+            
+            # 记录消息概要信息（INFO级别）
+            msg_summary = f"收到消息 [店铺:{shop_id}] 类型:{message_data.get('response')} "
+            if hasattr(pdd_message, 'from_user') and hasattr(pdd_message, 'nickname'):
+                msg_summary += f"来自:{pdd_message.from_user}({pdd_message.nickname})"
+            self.logger.info(msg_summary)
+            
+            # 记录完整消息内容（DEBUG级别，用于调试）
+            self.logger.debug(f"消息详情: {json.dumps(message_data, indent=2, ensure_ascii=False)}")
             
             # 转换为Context格式
             context = self._convert_to_context(pdd_message, shop_id, user_id, username)
