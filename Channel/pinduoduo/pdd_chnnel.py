@@ -276,10 +276,27 @@ class PDDChannel(Channel):
         try:
             # 解析消息
             message_data = json.loads(message)
-            self.logger.debug(f"收到消息: {json.dumps(message_data, indent=2, ensure_ascii=False)}")
             
             # 转换为PDD消息对象
             pdd_message = PDDChatMessage(message_data)
+            
+            # 记录消息概要信息（INFO级别）
+            msg_summary = f"收到消息 [店铺:{shop_id}] 类型:{message_data.get('response')}"
+            
+            # 添加发送者信息（如果有）
+            from_user = getattr(pdd_message, 'from_user', None)
+            nickname = getattr(pdd_message, 'nickname', None)
+            if from_user and nickname:
+                msg_summary += f" 来自:{from_user}({nickname})"
+            elif from_user:
+                msg_summary += f" 来自:{from_user}"
+            elif nickname:
+                msg_summary += f" 来自:{nickname}"
+                
+            self.logger.info(msg_summary)
+            
+            # 记录完整消息内容（DEBUG级别，用于调试）
+            self.logger.debug(f"消息详情: {json.dumps(message_data, indent=2, ensure_ascii=False)}")
             
             # 转换为Context格式
             context = self._convert_to_context(pdd_message, shop_id, user_id, username)
@@ -288,11 +305,11 @@ class PDDChannel(Channel):
                 if self._should_process_immediately(context):
                     # 立即处理的消息类型
                     await self._handle_immediate_message(context, shop_id, user_id)
-                    self.logger.debug(f"立即处理消息: {context.type}, ID: {pdd_message.msg_id}")
+                    self.logger.info(f"立即处理消息: {context.type}, ID: {pdd_message.msg_id}")
                 elif self._should_queue_message(context):
                     # 需要放入队列的消息类型
                     msg_id = await put_message(queue_name, context)
-                    self.logger.debug(f"消息已入队: {queue_name}, ID: {msg_id}, 类型: {context.type}")
+                    self.logger.info(f"消息已入队: {queue_name}, ID: {msg_id}, 类型: {context.type}")
                 else:
                     # 忽略的消息类型
                     self.logger.debug(f"忽略消息: {context.type}, ID: {pdd_message.msg_id}")

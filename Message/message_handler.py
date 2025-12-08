@@ -40,7 +40,7 @@ class AIAutoReplyHandler(MessageHandler):
         }
         self.enable_fallback = enable_fallback
         self.max_workers = max_workers
-        self.logger = get_logger()
+        self.logger = get_logger("AIAutoReplyHandler")
 
         # 创建专用的线程池资源管理器
         self.resource_manager = ThreadResourceManager()
@@ -268,7 +268,7 @@ class KeywordTriggerHandler(MessageHandler):
             keyword_rules: 关键词规则字典 {关键词: 处理函数}
         """
         self.keyword_rules = keyword_rules
-        self.logger = get_logger()
+        self.logger = get_logger("KeywordTriggerHandler")
     
     def can_handle(self, context: Context) -> bool:
         """检查消息是否包含关键词"""
@@ -316,7 +316,7 @@ class CustomerServiceTransferHandler(MessageHandler):
             '人工客服', '转人工', '人工', '客服', '投诉', '举报', 
             '不满意', '解决不了', '要求赔偿'
         ]
-        self.logger = get_logger()
+        self.logger = get_logger("CustomerServiceTransferHandler")
     
     def can_handle(self, context: Context) -> bool:
         """检查是否需要转接人工客服"""
@@ -386,7 +386,7 @@ class BusinessHoursHandler(MessageHandler):
             business_hours: 营业时间配置 {'start': '08:00', 'end': '23:00'}
         """
         self.business_hours = business_hours or {'start': '08:00', 'end': '23:00'}
-        self.logger = get_logger()
+        self.logger = get_logger("BusinessHoursHandler")
     
     def can_handle(self, context: Context) -> bool:
         """检查是否在非营业时间"""
