@@ -5,6 +5,10 @@
   <p><em>拼多多智能客服系统 - 提升客服效率的智能化解决方案</em></p>
 </div>
 
+> 📚 **完整文档**: 查看 [文档索引](docs/INDEX.md) 获取所有文档的导航  
+> 🚀 **快速开始**: [安装前检查](docs/PRE_INSTALLATION_CHECKLIST.md) → [安装指南](docs/INSTALLATION_GUIDE.md)  
+> 🔧 **遇到问题**: [快速修复指南](docs/DEPENDENCY_QUICK_FIX.md) | [依赖分析](docs/DEPENDENCY_ANALYSIS.md)
+
 ## 📖 项目简介
 
 拼多多智能客服系统是一个专为电商平台设计的综合性客户服务管理工具。本系统通过AI技术和自动化流程，显著提高客服工作效率，实现智能回复的同时保留人工介入的灵活性，为商家提供完整的客服解决方案。
